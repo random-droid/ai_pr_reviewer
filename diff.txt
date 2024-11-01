@@ -1,0 +1,159 @@
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+new file mode 100644
+index 0000000..26d3352
+--- /dev/null
++++ b/.idea/.gitignore
+@@ -0,0 +1,3 @@
++# Default ignored files
++/shelf/
++/workspace.xml
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+new file mode 100644
+index 0000000..3d3ab27
+--- /dev/null
++++ b/.idea/misc.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" project-jdk-name="17" project-jdk-type="JavaSDK">
++    <output url="file://$PROJECT_DIR$/out" />
++  </component>
++</project>
+\ No newline at end of file
+diff --git a/.idea/modules.xml b/.idea/modules.xml
+new file mode 100644
+index 0000000..6167fac
+--- /dev/null
++++ b/.idea/modules.xml
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectModuleManager">
++    <modules>
++      <module fileurl="file://$PROJECT_DIR$/Recursion/Recursion.iml" filepath="$PROJECT_DIR$/Recursion/Recursion.iml" />
++      <module fileurl="file://$PROJECT_DIR$/.idea/recursion.iml" filepath="$PROJECT_DIR$/.idea/recursion.iml" />
++    </modules>
++  </component>
++</project>
+\ No newline at end of file
+diff --git a/.idea/recursion.iml b/.idea/recursion.iml
+new file mode 100644
+index 0000000..8954e64
+--- /dev/null
++++ b/.idea/recursion.iml
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module type="JAVA_MODULE" version="4">
++  <component name="NewModuleRootManager" inherit-compiler-output="true">
++    <exclude-output />
++    <content url="file://$MODULE_DIR$" />
++    <orderEntry type="jdk" jdkName="17" jdkType="JavaSDK" />
++    <orderEntry type="sourceFolder" forTests="false" />
++  </component>
++</module>
+\ No newline at end of file
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+index 0000000..35eb1dd
+--- /dev/null
++++ b/.idea/vcs.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+diff --git a/Recursion/BinarySum.java b/Recursion/BinarySum.java
+new file mode 100644
+index 0000000..e899501
+--- /dev/null
++++ b/Recursion/BinarySum.java
+@@ -0,0 +1,32 @@
++import java.math.BigInteger;
++
++public class BinarySum {
++    
++    /*
++     * Given two binary strings a and b, return their sum as a binary string.
++
++ 
++
++Example 1:
++
++Input: a = "11", b = "1"
++Output: "100"
++Example 2:
++
++Input: a = "1010", b = "1011"
++Output: "10101"
++     * 
++     */
++    public static void main(String[] args) {
++        var classname = new BinarySum();
++        System.out.println(classname.addBinary("1010",  "1011"));
++    }
++
++    public String addBinary(String a, String b) {
++        BigInteger x = new BigInteger(a, 2);
++        BigInteger y = new BigInteger(b, 2);
++        BigInteger sum = x.add(y);
++        return sum.toString(2);
++    }
++
++}
+diff --git a/Recursion/FindSqrt.java b/Recursion/FindSqrt.java
+new file mode 100644
+index 0000000..6ff2484
+--- /dev/null
++++ b/Recursion/FindSqrt.java
+@@ -0,0 +1,35 @@
++import java.math.BigInteger;
++
++public class FindSqrt {
++    
++
++    public static void main(String[] args) {
++        
++
++    }
++
++    public int mySqrt(int x) {
++        BigInteger c = BigInteger.valueOf(x);
++        return c.sqrt().intValue();
++    }
++
++    public int mySqrt2(int x) {
++        if(x == 0){
++            return 0;
++        }
++        int start = 1;
++        int end = x;
++        int ans = 0;
++        while(start <= end){
++            int mid = start + (end-start)/2;
++			//instead of mid*mid we are giving x/mid to tackle overflow of integer range when multiplying with bigger numbers
++            if(mid <= x/mid){
++                ans = mid;
++                start = mid + 1;
++            }else{
++                end = mid -1;
++            }
++        }
++        return ans;
++    }
++}
+diff --git a/Recursion/decimaltobinary.java b/Recursion/decimaltobinary.java
+index 80e60cc..108648c 100644
+--- a/Recursion/decimaltobinary.java
++++ b/Recursion/decimaltobinary.java
+@@ -2,7 +2,7 @@ public class decimaltobinary {
+     
+     public static void main(String[] args) {
+         var d = new decimaltobinary();
+-        System.out.println(d.dec2binary(8));
++        d.dec2binary(8);
+     }
+ 
+     public int dec2binary(int a) {
