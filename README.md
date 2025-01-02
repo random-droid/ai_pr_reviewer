@@ -1,4 +1,4 @@
-# INTRODUCTION
+## INTRODUCTION
 Software integrity tools and automation is one of the fast evolving fields in the SDLC. I have had the pleasure to work in this field for years in my career. And have worked on the plethora of tools that are available and have integrated them for ease of use. One of the crucial steps in this effort is to: make these tools as part of the CI/CD pipeline. A natural progression towards breaking the entry barrier for the development teams across companies.
 Even though it can be a challenge to achieve, software integrity can have profound benefits for your code. Because it ensures that:
 - Coding defects are identified and addressed sooner.
@@ -12,7 +12,7 @@ Even though it can be a challenge to achieve, software integrity can have profou
 I was thrilled to hear about the proposed capstone project in the Gen AI course, about using the AI models to conduct the PR review. And take the prompt engineered phase further to further automate the entire process, as the goal of the project.
 
 
-# PROMPT ENGINEER PHASE
+## PROMPT ENGINEER PHASE
 Experiment with the prompt that gives a near accurate result for reviewing the pull request. Turns out providing the git diff results in more accurate results overall.
 
 
@@ -22,7 +22,7 @@ DIFFS:
 {diffs}`
 
 
-# AUTOMATION PHASE
+## AUTOMATION PHASE
 The following steps are automated via python script and Github action workflow setup stript.
 Use GitHub Actions workflow
 Runners are the machines that execute jobs in a GitHub Actions workflow. For example, a runner can clone your repository locally, install testing software, and then run commands that evaluate your code.
@@ -51,13 +51,13 @@ Split the ai response and post them for the prescribed line and the file:
 `curl -L \ -X POST \ -H "Accept: application/vnd.github+json" \ -H "Authorization: Bearer <YOUR-TOKEN>" \ -H "X-GitHub-Api-Version: 2022-11-28" \ https://api.github.com/repos/OWNER/REPO/pulls/PULL_NUMBER/comments \ -d '{"body":"text comment", "commit_id": commit_id, "path" : file_path, "position" : line}'`
 
 
-# PROCEDURE
+## PROCEDURE
 - Create a code base for running the PR review on, and push the base version to the master branch.
 - Checkin the GitHub workflow with the workflow script in the .github folder within the code base.
 - Checking the Python script and its related modules in the .genai folder within the code base
 - Create another branch with the modification to the code base and push the modifications that you want to be reviewed.
 
-# RESULTS
+## RESULTS
 The model version makes a difference in the quality of the output. Based on the experimentation, gpt-4o-mini is more reliable over the older models.
 The latency was not an issue in the small code base that was experimented on.
 
