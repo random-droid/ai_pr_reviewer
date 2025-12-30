@@ -5,15 +5,19 @@ This module provides codebase indexing and context retrieval to enhance
 AI code reviews with relevant context from the entire repository.
 
 How RAG works:
-1. Indexing: Walk repo → chunk code at function level → embed with OpenAI → store in FAISS
+1. Indexing: Walk repo → chunk code at function level → embed with Gemini/OpenAI → store in FAISS
 2. Retrieval: For each file being reviewed:
    - Find related files via import graph
    - Find similar code via semantic search (FAISS)
    - Get relevant stdlib docs
 3. Augmentation: Inject context into AI prompt for better reviews
+
+Embedding providers:
+- GeminiEmbeddings: Free tier available, uses gemini-embedding-001
+- OpenAIEmbeddings: Requires paid API key, uses text-embedding-3-small
 """
 
-from .embeddings import OpenAIEmbeddings
+from .embeddings import OpenAIEmbeddings, GeminiEmbeddings, EmbeddingsBase
 from .code_parser import CodeParser, CodeChunk, ImportInfo, ImportType
 from .indexer import CodebaseIndexer, CodebaseIndex, IndexedChunk
 from .retriever import RAGRetriever, RetrievedContext
@@ -21,6 +25,8 @@ from .stdlib_docs import StdlibDocsStore, StdlibDoc
 
 __all__ = [
     # Embeddings
+    "EmbeddingsBase",
+    "GeminiEmbeddings",
     "OpenAIEmbeddings",
     # Code parsing
     "CodeParser",

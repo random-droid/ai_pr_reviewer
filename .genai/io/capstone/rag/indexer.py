@@ -15,7 +15,7 @@ try:
 except ImportError:
     faiss = None
 
-from .embeddings import OpenAIEmbeddings
+from .embeddings import EmbeddingsBase, GeminiEmbeddings, OpenAIEmbeddings
 from .code_parser import CodeParser, CodeChunk, ImportType
 
 
@@ -108,14 +108,16 @@ class CodebaseIndexer:
     def __init__(
         self,
         api_key: str,
-        max_chunk_lines: int = 100
+        max_chunk_lines: int = 100,
+        embedding_provider: str = "gemini"
     ):
         """
         Initialize the indexer.
 
         Args:
-            api_key: OpenAI API key for embeddings
+            api_key: API key for embeddings (Gemini or OpenAI)
             max_chunk_lines: Maximum lines per chunk (large functions get split)
+            embedding_provider: "gemini" (default, free tier) or "openai"
         """
         if faiss is None:
             raise ImportError(
@@ -123,7 +125,13 @@ class CodebaseIndexer:
                 "Install with: pip install faiss-cpu"
             )
 
-        self.embeddings = OpenAIEmbeddings(api_key)
+        if embedding_provider == "gemini":
+            self.embeddings = GeminiEmbeddings(api_key)
+        elif embedding_provider == "openai":
+            self.embeddings = OpenAIEmbeddings(api_key)
+        else:
+            raise ValueError(f"Unknown embedding provider: {embedding_provider}")
+
         self.max_chunk_lines = max_chunk_lines
         # Parser configured to prefer function-level chunks
         self.parser = CodeParser(default_chunk_size=max_chunk_lines)

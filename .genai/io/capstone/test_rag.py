@@ -5,17 +5,22 @@ Test script for RAG-powered PR reviewer.
 Run this locally to verify the RAG system works before deploying.
 
 Usage:
-    # Test with OpenAI (default)
-    export CHATGPT_KEY="your-openai-api-key"
+    # Test with Gemini (default - free tier)
+    export GEMINI_KEY="your-google-api-key"
     python test_rag.py
 
-    # Test with Gemini
+    # Test with Gemini for both embeddings and AI
     export GEMINI_KEY="your-google-api-key"
     python test_rag.py --provider gemini
 
-    # Test with Claude
+    # Test with Claude for AI (Gemini for embeddings)
+    export GEMINI_KEY="your-google-api-key"
     export CLAUDE_KEY="your-anthropic-api-key"
     python test_rag.py --provider claude
+
+    # Test with OpenAI for embeddings (requires paid API)
+    export CHATGPT_KEY="your-openai-api-key"
+    python test_rag.py --provider openai --embedding-provider openai
 """
 
 import os
@@ -34,6 +39,7 @@ def test_imports():
 
     try:
         from rag import (
+            GeminiEmbeddings,
             OpenAIEmbeddings,
             CodeParser,
             CodebaseIndexer,
@@ -161,7 +167,7 @@ def test_stdlib_docs():
     return True
 
 
-def test_indexer(api_key: str):
+def test_indexer(api_key: str, embedding_provider: str = "gemini"):
     """Test codebase indexing."""
     print("\n" + "=" * 60)
     print("TEST 4: Codebase Indexer")
@@ -169,10 +175,13 @@ def test_indexer(api_key: str):
 
     from rag import CodebaseIndexer
 
-    print("\nIndexing current directory...")
-    print("(This may take a minute and will use OpenAI API credits)")
+    print(f"\nIndexing current directory with {embedding_provider.upper()} embeddings...")
+    if embedding_provider == "gemini":
+        print("(Using Gemini free tier)")
+    else:
+        print("(This will use OpenAI API credits)")
 
-    indexer = CodebaseIndexer(api_key)
+    indexer = CodebaseIndexer(api_key, embedding_provider=embedding_provider)
     index = indexer.index_repository(".", show_progress=True)
 
     print(f"\n✓ Indexed {len(index.chunks)} chunks")
@@ -188,15 +197,19 @@ def test_indexer(api_key: str):
     return index
 
 
-def test_retriever(api_key: str, index):
+def test_retriever(api_key: str, index, embedding_provider: str = "gemini"):
     """Test RAG retrieval."""
     print("\n" + "=" * 60)
     print("TEST 5: RAG Retriever")
     print("=" * 60)
 
-    from rag import RAGRetriever, OpenAIEmbeddings, StdlibDocsStore
+    from rag import RAGRetriever, GeminiEmbeddings, OpenAIEmbeddings, StdlibDocsStore
 
-    embeddings = OpenAIEmbeddings(api_key)
+    if embedding_provider == "gemini":
+        embeddings = GeminiEmbeddings(api_key)
+    else:
+        embeddings = OpenAIEmbeddings(api_key)
+
     stdlib_store = StdlibDocsStore(embeddings)
     stdlib_store.initialize()
 
@@ -255,7 +268,7 @@ def test_full_review(api_key: str, provider: str = "openai"):
         ai = ChatGPT(api_key, "gpt-4o-mini")
     elif provider == "gemini":
         from genai.gemini import Gemini
-        ai = Gemini(api_key, "gemini-1.5-flash")
+        ai = Gemini(api_key, "gemini-2.0-flash")
     elif provider == "claude":
         from genai.claude import Claude
         ai = Claude(api_key, "claude-sonnet-4-20250514")
@@ -343,33 +356,49 @@ def main():
     parser.add_argument(
         "--provider",
         choices=["openai", "gemini", "claude"],
-        default="openai",
-        help="AI provider to use for testing (default: openai)"
+        default="gemini",
+        help="AI provider for reviews (default: gemini)"
+    )
+    parser.add_argument(
+        "--embedding-provider",
+        choices=["gemini", "openai"],
+        default="gemini",
+        help="Embedding provider (default: gemini - free tier)"
     )
     parser.add_argument(
         "--skip-indexer",
         action="store_true",
-        help="Skip indexer test (requires OpenAI API key for embeddings)"
+        help="Skip indexer/retriever tests"
     )
     args = parser.parse_args()
 
     print("\n" + "=" * 60)
     print("RAG-POWERED PR REVIEWER - TEST SUITE")
     print("=" * 60)
-    print(f"Provider: {args.provider.upper()}")
+    print(f"AI Provider: {args.provider.upper()}")
+    print(f"Embedding Provider: {args.embedding_provider.upper()}")
 
-    # Check API key
-    api_key = get_api_key(args.provider)
-    openai_key = os.environ.get('CHATGPT_KEY') or os.environ.get('OPENAI_API_KEY')
+    # Check API keys
+    ai_api_key = get_api_key(args.provider)
+    embedding_api_key = get_api_key(args.embedding_provider)
 
-    if not api_key:
+    if not ai_api_key:
         env_var = {
             "openai": "CHATGPT_KEY or OPENAI_API_KEY",
             "gemini": "GEMINI_KEY or GOOGLE_API_KEY",
             "claude": "CLAUDE_KEY or ANTHROPIC_API_KEY"
         }[args.provider]
         print(f"\n⚠ {env_var} environment variable not set")
-        print("Set it to run full tests:")
+        print("Set it to run AI review tests:")
+        print(f"  export {env_var.split(' or ')[0]}='your-api-key'")
+
+    if not embedding_api_key:
+        env_var = {
+            "openai": "CHATGPT_KEY or OPENAI_API_KEY",
+            "gemini": "GEMINI_KEY or GOOGLE_API_KEY",
+        }[args.embedding_provider]
+        print(f"\n⚠ {env_var} environment variable not set for embeddings")
+        print("Set it to run indexer tests:")
         print(f"  export {env_var.split(' or ')[0]}='your-api-key'")
         print("\nRunning offline tests only...\n")
 
@@ -397,17 +426,17 @@ def main():
     else:
         tests_failed += 1
 
-    # Tests requiring OpenAI API key (for embeddings)
+    # Tests requiring embedding API key
     index = None
-    if openai_key and not args.skip_indexer:
-        # Test 4: Indexer (requires OpenAI for embeddings)
+    if embedding_api_key and not args.skip_indexer:
+        # Test 4: Indexer
         try:
-            index = test_indexer(openai_key)
+            index = test_indexer(embedding_api_key, args.embedding_provider)
             if index:
                 tests_passed += 1
 
                 # Test 5: Retriever
-                if test_retriever(openai_key, index):
+                if test_retriever(embedding_api_key, index, args.embedding_provider):
                     tests_passed += 1
                 else:
                     tests_failed += 1
@@ -415,17 +444,19 @@ def main():
                 tests_failed += 1
         except Exception as e:
             print(f"\n✗ Indexer test failed: {e}")
+            import traceback
+            traceback.print_exc()
             tests_failed += 1
     else:
         if args.skip_indexer:
             print("\n⏭ Skipping indexer tests (--skip-indexer)")
         else:
-            print("\n⏭ Skipping indexer tests (need OPENAI_API_KEY for embeddings)")
+            print("\n⏭ Skipping indexer tests (need embedding API key)")
 
-    # Test 6: Full Review (uses selected provider)
-    if api_key:
+    # Test 6: Full Review (uses selected AI provider)
+    if ai_api_key:
         try:
-            if test_full_review(api_key, args.provider):
+            if test_full_review(ai_api_key, args.provider):
                 tests_passed += 1
             else:
                 tests_failed += 1

@@ -12,16 +12,19 @@ class Gemini(AiBot):
     def __init__(
         self,
         token: str,
-        model: str = "gemini-1.5-flash",
+        model: str = "gemini-2.0-flash",
     ):
         """
         Initialize Gemini client.
 
         Args:
             token: Google AI API key
-            model: Model to use (e.g., "gemini-1.5-flash", "gemini-1.5-pro")
+            model: Model to use (e.g., "gemini-2.0-flash", "gemini-1.5-pro")
         """
         genai.configure(api_key=token)
+        # Ensure model has models/ prefix
+        if not model.startswith("models/"):
+            model = f"models/{model}"
         self.__model = genai.GenerativeModel(
             model_name=model,
             system_instruction=AiBot.get_system_message()

@@ -48,6 +48,7 @@ try:
     from rag import (
         CodebaseIndexer,
         RAGRetriever,
+        GeminiEmbeddings,
         OpenAIEmbeddings,
         StdlibDocsStore,
         CodeParser
@@ -63,12 +64,13 @@ separator = "\n\n---------------------------------------------------------------
 log_file = open('output.txt', 'a')
 
 
-def build_rag_index(api_key: str):
+def build_rag_index(api_key: str, embedding_provider: str = "gemini"):
     """
     Build RAG index of the codebase.
 
     Args:
-        api_key: OpenAI API key for embeddings
+        api_key: API key for embeddings (Gemini or OpenAI)
+        embedding_provider: "gemini" (default, free tier) or "openai"
 
     Returns:
         Tuple of (retriever, stdlib_store) or (None, None) if RAG unavailable
@@ -77,13 +79,16 @@ def build_rag_index(api_key: str):
         return None, None
 
     try:
-        Log.print_green("Building RAG index of codebase...")
+        Log.print_green(f"Building RAG index of codebase (embeddings: {embedding_provider})...")
 
-        # Initialize components
-        embeddings = OpenAIEmbeddings(api_key)
+        # Initialize embeddings based on provider
+        if embedding_provider == "gemini":
+            embeddings = GeminiEmbeddings(api_key)
+        else:
+            embeddings = OpenAIEmbeddings(api_key)
 
-        # Index the repository
-        indexer = CodebaseIndexer(api_key)
+        # Index the repository (uses same embedding provider)
+        indexer = CodebaseIndexer(api_key, embedding_provider=embedding_provider)
         codebase_index = indexer.index_repository(".", show_progress=True)
 
         # Initialize stdlib docs
@@ -137,10 +142,14 @@ def main():
     ai = get_ai_client(vars_main.ai_provider, vars_main.ai_token, vars_main.ai_model)
     github = GitHub(vars_main.token, vars_main.owner, vars_main.repo, vars_main.pull_number)
 
-    # Build RAG index for codebase context (uses OpenAI embeddings regardless of AI provider)
-    # Note: RAG requires OpenAI API key for embeddings even if using Gemini/Claude for review
-    embedding_key = os.getenv('OPENAI_API_KEY') or os.getenv('CHATGPT_KEY') or vars_main.ai_token
-    retriever, stdlib_store = build_rag_index(embedding_key)
+    # Build RAG index for codebase context
+    # Default: Gemini embeddings (free tier), fallback to OpenAI
+    embedding_provider = os.getenv('EMBEDDING_PROVIDER', 'gemini')
+    if embedding_provider == 'gemini':
+        embedding_key = os.getenv('GEMINI_KEY') or os.getenv('GOOGLE_API_KEY') or vars_main.ai_token
+    else:
+        embedding_key = os.getenv('OPENAI_API_KEY') or os.getenv('CHATGPT_KEY') or vars_main.ai_token
+    retriever, stdlib_store = build_rag_index(embedding_key, embedding_provider)
     use_rag = retriever is not None
 
     remote_name = Git.get_remote_name()
