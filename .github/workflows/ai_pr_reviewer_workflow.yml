@@ -35,12 +35,21 @@ jobs:
           TARGET_EXTENSIONS: ${{ vars.TARGET_EXTENSIONS }}
 
           # AI Provider selection (openai, gemini, or claude)
-          AI_PROVIDER: ${{ vars.AI_PROVIDER || 'claude' }}
+          AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
 
-          # Provider API keys (set the one you use)
+          # Embedding provider for RAG (gemini = free tier, openai = paid)
+          EMBEDDING_PROVIDER: ${{ vars.EMBEDDING_PROVIDER || 'gemini' }}
+
+          # Provider API keys (set the ones you use)
+          # Gemini key is used for both embeddings (free) and AI reviews
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+
+          # OpenAI keys (if using OpenAI for embeddings or reviews)
           CHATGPT_KEY: ${{ secrets.CHATGPT_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+
+          # Claude keys (if using Claude for reviews)
           CLAUDE_KEY: ${{ secrets.CLAUDE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
