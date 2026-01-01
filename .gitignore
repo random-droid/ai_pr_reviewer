@@ -165,6 +165,15 @@ cython_debug/
 run.sh
 errors.txt
 
+# RAG cache files
+.genai/io/capstone/rag/data/*.pkl
+.rag-cache/
+output.txt
+
+# API keys (never commit these!)
+.env.local
+*.env
+
 # These are some examples of commonly ignored file patterns.
 # You should customize this list as applicable to your project.
 # Learn more about .gitignore:
